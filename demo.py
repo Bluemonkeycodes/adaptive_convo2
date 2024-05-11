@@ -12,7 +12,6 @@ Notes
 --------------------------
 install pip install playsound==1.2.2
 latest version of playsound is not working
-make sure to remove key from openai before pushing to git
 """
 print("Recording audio...")
 path = MicRecorder().record(3)
