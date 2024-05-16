@@ -20,3 +20,5 @@ def play_video(filepath : str) -> None:
 
     media_end_event.wait()
 
+if __name__ == "__main__":
+    play_video("1_episode.mp4")
