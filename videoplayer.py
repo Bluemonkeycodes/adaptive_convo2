@@ -1,6 +1,7 @@
 import vlc
 import threading
-def play_video(filepath : str) -> None:
+
+def play_video(filepath: str) -> None:
     instance = vlc.Instance()
     player = instance.media_player_new()
     media = instance.media_new(filepath)
@@ -20,5 +21,10 @@ def play_video(filepath : str) -> None:
 
     media_end_event.wait()
 
+def play_video_threading(filepath: str) -> None:
+    playback_thread = threading.Thread(target=play_video, args=(filepath,))
+    playback_thread.start()
+
 if __name__ == "__main__":
-    play_video("1_episode.mp4")
+    play_video_threading("01_episode.mp4")
+
