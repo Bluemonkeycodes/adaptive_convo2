@@ -27,4 +27,3 @@ def play_video_threading(filepath: str) -> None:
 
 if __name__ == "__main__":
     play_video_threading("01_episode.mp4")
-
