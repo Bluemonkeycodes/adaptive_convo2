@@ -1,4 +1,6 @@
 stt-private-key.json
 tts-private-key.json
 .env
-__pycache__
+__pycache__/
+*.py[cod]
+*$py.class
