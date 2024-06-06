@@ -3,7 +3,7 @@ Notes:
 ----------------------------------------
 * Right now the function takes in the filename, this could change depending on structure of final code
 * Outputs to a specified file as a .wav file
-* Key file is explicitly written, this should be changed
+* Google Key file is explicitly written, this should be changed
 * Doesn't return path to file, this could be changed depending on final code
 """
 

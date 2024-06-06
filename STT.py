@@ -7,46 +7,76 @@ Notes
 *returns the list utterences said in the audio file
 ----------------------------------------
 """
-from time import time
-from typing import Iterable
-from click import echo
+
+import pyaudio
+from google.cloud import speech
 from google.cloud import speech
 from google.oauth2 import service_account
 
-
-
-MIC_SAMPLE_RATE = 16000
-SPEECH_TIMEOUT = 5  # seconds
+# Audio recording parameters
+RATE = 16000
+CHUNK_DIVISON = 10 #Bigger number means faster cut off time for end of speech
+CHUNK = int(RATE / CHUNK_DIVISON)  # 100ms
 
 def intialize_client():
     credentials = service_account.Credentials.from_service_account_file('stt-private-key.json')
     client = speech.SpeechClient(credentials=credentials)
     return client
 
-def get_speech_text(
-    client: speech.SpeechClient, audio_gen: str, max_alts = 5
-) -> list[str]:
 
+def STT() -> str:
+    client = intialize_client()
 
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-        sample_rate_hertz=MIC_SAMPLE_RATE,
-        language_code='en-US',
-        max_alternatives=max_alts,
+        sample_rate_hertz=RATE,
+        language_code="en-US",
     )
 
-    client = client
-    start_time = time()
-    with open(audio_gen, "rb") as f:
-        content = f.read()
-        audio = speech.RecognitionAudio(content=content)
-    responses = client.recognize(config=config, audio=audio)
-    results = []
-    for x in responses.results:
-        results.append(x.alternatives[0].transcript)
-    return (results)
+    streaming_config = speech.StreamingRecognitionConfig(
+        config=config,
+        interim_results=True
+    )
+
+    audio_interface = pyaudio.PyAudio()
+    audio_stream = audio_interface.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=RATE,
+        input=True,
+        frames_per_buffer=CHUNK,
+        stream_callback=None
+    )
+    print("Listening...")
+
+    audio_generator = (audio_stream.read(CHUNK) for _ in iter(int, 1))
+
+    requests = (speech.StreamingRecognizeRequest(audio_content=content)
+                for content in audio_generator)
+
+    responses = client.streaming_recognize(streaming_config, requests)
+
+    try:
+        for response in responses:
+            if not response.results:
+                continue
+
+            result = response.results[0]
+            if not result.alternatives:
+                continue
+
+            if result.is_final:
+                transcript = result.alternatives[0].transcript
+                print(f"You said: {transcript}")
+                break
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        audio_stream.stop_stream()
+        audio_stream.close()
+        audio_interface.terminate()
+        print("Stopped listening")
+        return transcript
 
 if __name__ == "__main__":
-    client = intialize_client()
-    #open file and read bytes
-    print(get_speech_text(client, "24-05-09_17-37-17.wav"))
+    STT()
